@@ -1,3 +1,6 @@
+#include "raylib.h"
+//#include "raymath.h"
+
 /**********************************************************************************************
 *
 *   raylib.lights - Some useful functions to deal with lights data

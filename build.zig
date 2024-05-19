@@ -3,7 +3,7 @@ const std = @import("std");
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -34,7 +34,47 @@ pub fn build(b: *std.Build) void {
         .optimize = raylibOptimize,
     });
 
-    exe.linkLibrary(raylib.artifact("raylib"));
+    const raylibArtifact = raylib.artifact("raylib");
+    exe.linkLibrary(raylibArtifact);
+    //<
+    // const stdout = std.io.getStdOut().writer();
+    // try stdout.print("{s}", .{raylib.path("").});
+
+    //> rlights.h
+    // const rlightsExe = b.addStaticLibrary(.{
+    //     .name = "rlights",
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+
+    // rlightsExe.linkLibrary(raylibArtifact);
+
+    // rlightsExe.addCSourceFile(.{
+    //     .file = .{
+    //         .path = "src/rlights.h",
+    //     },
+    //     .flags = &.{"-RLIGHTS_IMPLEMENTATION=1"},
+    // });
+
+    // b.installArtifact(rlightsExe);
+    // exe.linkLibrary(rlightsExe);
+    
+    exe.addIncludePath(.{
+        .path = "src",
+    });
+
+    //b.add(source: LazyPath, dest_rel_path: []const u8);
+
+    // const rlightsHeaderLib = b.addStaticLibrary(.{
+    //     .name = "rlights",
+    //     .root_source_file = b.path("src/rlights.h"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+
+    // rlightsHeaderLib.linkLibrary(raylibArtifact);
+    // //rlightsHeaderLib.addCSourceFile(.{ .file = "src/rlights.h" });
+    // exe.linkLibrary(rlightsHeaderLib);
     //<
 
     // This declares intent for the executable to be installed into the

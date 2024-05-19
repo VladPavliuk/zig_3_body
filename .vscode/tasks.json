@@ -8,7 +8,9 @@
            "type": "process",
            "command": "zig",
            "args": [
-                "build"
+                "build",
+                "--summary",
+                "all"
            ]
         }
     ]
