@@ -13,8 +13,11 @@ pub fn build(b: *std.Build) !void {
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
-    const optimize = b.standardOptimizeOption(.{});
-
+    const optimize = b.standardOptimizeOption(.{
+        // .preferred_optimize_mode = std.builtin.OptimizeMode.ReleaseFast
+    });
+    
+    //"ReleaseFast"
     const exe = b.addExecutable(.{
         .name = "zig_3d",
         .root_source_file = b.path("src/main.zig"),
@@ -59,6 +62,8 @@ pub fn build(b: *std.Build) !void {
     // b.installArtifact(rlightsExe);
     // exe.linkLibrary(rlightsExe);
     
+    //b.addSystemCommand(argv: []const []const u8)
+
     exe.addIncludePath(.{
         .path = "src",
     });
