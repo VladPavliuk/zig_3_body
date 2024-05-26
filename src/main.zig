@@ -24,32 +24,20 @@ fn switchToWindowed(x: i32, y: i32) void {
 
 const GravityObject = struct {
     transformation: raylib.Matrix, // only for shader
-    position: raylib.Vector3,
-    speed: raylib.Vector3,
+    position: @Vector(3, f32),
+    speed: @Vector(3, f32),
     radius: f32,
     mass: f32,
     massInverse: f32,
 };
 
-// fn calculateGravity(a: GravityObject, b: GravityObject) raylib.Vector2 {
-//     const delta = raylib.Vector3Subtract(a.position, b.position);
-//     const distance = raylib.Vector3Distance(a.position, b.position);
-
-//     // distance
-//     // const distance = a.position
-// }
-
 fn generateObjects() !std.MultiArrayList(GravityObject) {
     var objects = std.MultiArrayList(GravityObject){};
 
-    //var objects = ArrayList(GravityObject).init(std.heap.c_allocator);
-
-    const centerLocation: raylib.Vector3 = .{ .x = 0.0, .y = 0.0, .z = 0.0 };
-
     try objects.append(std.heap.c_allocator, .{
         .transformation = raylib.MatrixIdentity(),
-        .position = centerLocation,
-        .speed = .{ .x = 0.0, .y = 0.0, .z = 0.0 },
+        .position = @splat(0.0),
+        .speed = @splat(0.0),
         .radius = 0.0,
         .mass = 40.0,
         .massInverse = 1.0 / 20.0
@@ -75,8 +63,8 @@ fn generateObjects() !std.MultiArrayList(GravityObject) {
 
         try objects.append(std.heap.c_allocator, .{
             .transformation = raylib.MatrixIdentity(),
-            .position = .{ .x = x, .y = y, .z = 0.0 },
-            .speed = .{ .x = initSpeedX, .y = initSpeedY, .z = 0.0 },
+            .position = @Vector(3, f32) { x, y, 0.0 },
+            .speed = @Vector(3, f32) { initSpeedX, initSpeedY, 0.0 },
             .radius = 0.0,
             .mass = 1.0,
             .massInverse = 1.0
@@ -122,33 +110,18 @@ fn simulate(objects: std.MultiArrayList(GravityObject).Slice, deltaTime: f32) vo
         |aObjectPosition, aObjectMass, aObjectMassInverse, *aObjectSpeed, index| {
         for (objects.items(.position)[index..objects.len], objects.items(.mass)[index..objects.len], objects.items(.massInverse)[index..objects.len], objects.items(.speed)[index..objects.len]) 
             |bObjectPosition, bObjectMass, bObjectMassInverse, *bObjectSpeed| {
-            
-            // const delta = raylib.Vector3Subtract(aObjectPosition, bObjectPosition);
 
-            const delta = @Vector(3, f32){ aObjectPosition.x, aObjectPosition.y, aObjectPosition.z } -
-                @Vector(3, f32){ bObjectPosition.x, bObjectPosition.y, bObjectPosition.z };
-
-            // const delta: raylib.Vector3 = .{
-            //     .x = aObjectPosition.x - bObjectPosition.x,
-            //     .y = aObjectPosition.y - bObjectPosition.y,
-            //     .z = aObjectPosition.z - bObjectPosition.z,
-            // };
+            const delta = aObjectPosition - bObjectPosition;
 
             const distance = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2] + 0.02;
 
             const force = 0.001 * deltaTime * aObjectMass * bObjectMass / distance;
 
-            //const forceVector: @Vector(3, f32) = @splat(force);
-
-            // forceVector = forceVector * delta;
+            const forceA: @Vector(3, f32) = @splat(force * aObjectMassInverse);
+            const forceB: @Vector(3, f32) = @splat(force * bObjectMassInverse);
             
-            aObjectSpeed.x -= force * delta[0] * aObjectMassInverse;
-            aObjectSpeed.y -= force * delta[1] * aObjectMassInverse;
-            aObjectSpeed.z -= force * delta[2] * aObjectMassInverse;
-            
-            bObjectSpeed.x += force * delta[0] * bObjectMassInverse;
-            bObjectSpeed.y += force * delta[1] * bObjectMassInverse;
-            bObjectSpeed.z += force * delta[2] * bObjectMassInverse;
+            aObjectSpeed.* -= delta * forceA; 
+            bObjectSpeed.* += delta * forceB;
         }
     }
 
@@ -178,15 +151,13 @@ fn simulate(objects: std.MultiArrayList(GravityObject).Slice, deltaTime: f32) vo
         // speed.y *= 0.98;
         // speed.z *= 0.98;
 
-        position.x += speed.x;
-        position.y += speed.y;
-        // position.z += speed.z;
+        position.* += speed.*;
 
         const objectScale = raylib.MatrixScale(radius, radius, radius);
 
         transformation.* = raylib.MatrixMultiply(
             objectScale,
-            raylib.MatrixTranslate(position.x, position.y, position.z));
+            raylib.MatrixTranslate(position[0], position[1], position[2]));
     }
 }
 
@@ -233,7 +204,7 @@ pub fn main() !void {
         .{ .x = 20.0, .y = 0.0, .z = -0.0 }, raylib.Vector3Zero(), raylib.YELLOW, shader);
 
     raylib.UpdateLightValues(shader, light);
-
+    
     const sphereMesh = raylib.GenMeshSphere(1.0, 10, 10);
     var sphereMaterial = raylib.LoadMaterialDefault();
 
@@ -289,9 +260,9 @@ pub fn main() !void {
             const xProjected = -(cameraZoom * 1.5) * mousePosition.x / currentScreenWidth + (cameraZoom * 0.75);
             const yProjected = -(cameraZoom * 1.5) * (currentScreenHeight / currentScreenWidth) * mousePosition.y / currentScreenHeight + (cameraZoom/2.0);
 
-            firstObjectPosition.x = xProjected;
-            firstObjectPosition.y = yProjected;
-            firstObjectSpeed.* = .{ .x = 0.0, .y = 0.0, .z = 0.0 };
+            firstObjectPosition[0] = xProjected;
+            firstObjectPosition[1] = yProjected;
+            firstObjectSpeed.* = @splat(0.0);
         }
 
         if (!stopSimulation) {
@@ -303,9 +274,9 @@ pub fn main() !void {
         }
 
         // const firstObject = objects.items[0];
-        light.position.x = firstObjectPosition.x;
-        light.position.y = firstObjectPosition.y;
-        light.position.z = firstObjectPosition.z;
+        light.position.x = firstObjectPosition[0];
+        light.position.y = firstObjectPosition[1];
+        light.position.z = firstObjectPosition[2];
 
         raylib.UpdateLightValues(shader, light);
 
