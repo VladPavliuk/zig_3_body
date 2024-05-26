@@ -122,21 +122,33 @@ fn simulate(objects: std.MultiArrayList(GravityObject).Slice, deltaTime: f32) vo
         |aObjectPosition, aObjectMass, aObjectMassInverse, *aObjectSpeed, index| {
         for (objects.items(.position)[index..objects.len], objects.items(.mass)[index..objects.len], objects.items(.massInverse)[index..objects.len], objects.items(.speed)[index..objects.len]) 
             |bObjectPosition, bObjectMass, bObjectMassInverse, *bObjectSpeed| {
-            const delta = raylib.Vector3Subtract(aObjectPosition, bObjectPosition);
-
-            const distance = (delta.x * delta.x) + (delta.y * delta.y) + 0.02;
-
-            var force = 0.001 * aObjectMass * bObjectMass / distance;
-
-            force *= deltaTime;
-
-            aObjectSpeed.x += force * -delta.x * aObjectMassInverse;
-            aObjectSpeed.y += force * -delta.y * aObjectMassInverse;
-            // aObjectSpeed.z += force * -delta.z * aObjectMassInverse;
             
-            bObjectSpeed.x += force * delta.x * bObjectMassInverse;
-            bObjectSpeed.y += force * delta.y * bObjectMassInverse;
-            // bObjectSpeed.z += force * delta.z * bObjectMassInverse;
+            // const delta = raylib.Vector3Subtract(aObjectPosition, bObjectPosition);
+
+            const delta = @Vector(3, f32){ aObjectPosition.x, aObjectPosition.y, aObjectPosition.z } -
+                @Vector(3, f32){ bObjectPosition.x, bObjectPosition.y, bObjectPosition.z };
+
+            // const delta: raylib.Vector3 = .{
+            //     .x = aObjectPosition.x - bObjectPosition.x,
+            //     .y = aObjectPosition.y - bObjectPosition.y,
+            //     .z = aObjectPosition.z - bObjectPosition.z,
+            // };
+
+            const distance = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2] + 0.02;
+
+            const force = 0.001 * deltaTime * aObjectMass * bObjectMass / distance;
+
+            //const forceVector: @Vector(3, f32) = @splat(force);
+
+            // forceVector = forceVector * delta;
+            
+            aObjectSpeed.x -= force * delta[0] * aObjectMassInverse;
+            aObjectSpeed.y -= force * delta[1] * aObjectMassInverse;
+            aObjectSpeed.z -= force * delta[2] * aObjectMassInverse;
+            
+            bObjectSpeed.x += force * delta[0] * bObjectMassInverse;
+            bObjectSpeed.y += force * delta[1] * bObjectMassInverse;
+            bObjectSpeed.z += force * delta[2] * bObjectMassInverse;
         }
     }
 
