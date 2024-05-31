@@ -144,13 +144,13 @@ fn generateObjects() !std.MultiArrayList(GravityObject) {
     }
 
     for (objects.items(.color)) |*color| {
-        // const red: f32 = @as(f32, @floatFromInt(raylib.GetRandomValue(1, 255))) / 255.0;
-        // const green: f32 = @as(f32, @floatFromInt(raylib.GetRandomValue(1, 255))) / 255.0;
-        // const blue: f32 = @as(f32, @floatFromInt(raylib.GetRandomValue(1, 255))) / 255.0;
+        const red: f32 = @as(f32, @floatFromInt(raylib.GetRandomValue(1, 255))) / 255.0;
+        const green: f32 = @as(f32, @floatFromInt(raylib.GetRandomValue(1, 255))) / 255.0;
+        const blue: f32 = @as(f32, @floatFromInt(raylib.GetRandomValue(1, 255))) / 255.0;
         
-        const red: f32 = 1.0;
-        const green: f32 = 1.0;
-        const blue: f32 = 1.0;
+        // const red: f32 = 1.0;
+        // const green: f32 = 1.0;
+        // const blue: f32 = 1.0;
 
         color.* = .{
             .x = red,

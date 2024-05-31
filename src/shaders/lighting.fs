@@ -44,8 +44,8 @@ void main()
 
     // colors
     //vec4 texelColor = vec4(0.5f, 1.0f, 0.0f, 1.0f);
-    //vec4 texelColor = vec4(colors[instanceID], 1.0f);
-    // vec4 texelColor = vec4(instanceID / 4096.0f, instanceID / 4096.0f, instanceID / 4096.0f, 1.0f);
+    vec4 texelColor = vec4(colors[instanceID], 1.0f);
+    //vec4 texelColor = vec4(instanceID / 4096.0f, instanceID / 4096.0f, instanceID / 4096.0f, 1.0f);
 
     vec3 lightDot = vec3(0.0);
     vec3 normal = normalize(fragNormal);
