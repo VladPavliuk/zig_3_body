@@ -1,4 +1,5 @@
 const std = @import("std");
+const raySdk = @import("raylib");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
@@ -17,29 +18,60 @@ pub fn build(b: *std.Build) !void {
         .preferred_optimize_mode = std.builtin.OptimizeMode.ReleaseFast
     });
     
-    //"ReleaseFast"
     const exe = b.addExecutable(.{
         .name = "zig_3d",
+        // In this case the main source file is merely a path, however, in more
+        // complicated build scripts, this could be a generated file.
         .root_source_file = b.path("src/main.zig"),
+        // .root_source_file = .{ .path = "src/root.zig" },
         .target = target,
         .optimize = optimize,
     });
 
-    //> raylib
+    //> raylib    
     const raylibOptimize = b.option(
         std.builtin.OptimizeMode,
         "raylib-optimize",
         "Prioritize performance, safety, or binary size (-O flag), defaults to value of optimize option",
     ) orelse optimize;
 
-    const raylib = b.dependency("raylib", .{
+    const raylib = try raySdk.addRaylib(b, target, raylibOptimize, .{
+        .raudio = true,
+        .rmodels = true,
+        .rshapes = true,
+        .rtext = true,
+        .rtextures = true,
+        // .raygui = true,
+    });
+
+    raylib.defineCMacro("GRAPHICS_API_OPENGL_43", null);
+    raylib.defineCMacro("RLGL_SHOW_GL_DETAILS_INFO", null);
+    raylib.defineCMacro("RLGL_ENABLE_OPENGL_DEBUG_CONTEXT", null);
+
+    exe.linkLibrary(raylib);
+
+    const raylibDependency = b.dependency("raylib", .{
         .target = target,
         .optimize = raylibOptimize,
     });
+    exe.addIncludePath(raylibDependency.path("src"));
 
-    const raylibArtifact = raylib.artifact("raylib");
-    exe.linkLibrary(raylibArtifact);
+    // const raylibArtifact = raylibDependency.artifact("raylib");
+    // exe.linkLibrary(raylibArtifact);
     //<
+
+    //> glfw
+    // const glfw = b.dependency("mach_glfw", .{
+    //     .target = target,
+    //     .optimize = raylibOptimize,
+    // });
+
+    // exe.root_module.addImport("mach-glfw", glfw.module("mach-glfw"));
+    
+    // const glfwArtifact = glfw.artifact("glfw");
+    // exe.linkLibrary(glfwArtifact);
+    //<
+
     // const stdout = std.io.getStdOut().writer();
     // try stdout.print("{s}", .{raylib.path("").});
 
@@ -67,6 +99,14 @@ pub fn build(b: *std.Build) !void {
     exe.addIncludePath(.{
         .path = "src",
     });
+
+    const install = b.getInstallStep();
+    const install_data = b.addInstallDirectory(.{
+        .source_dir = .{ .path = "src/shaders" },
+        .install_dir = .{ .bin = {} },
+        .install_subdir = "",
+    });
+    install.dependOn(&install_data.step);
 
     //b.add(source: LazyPath, dest_rel_path: []const u8);
 
@@ -113,6 +153,7 @@ pub fn build(b: *std.Build) !void {
     // but does not run it.
     const lib_unit_tests = b.addTest(.{
         .root_source_file = b.path("src/root.zig"),
+        // .root_source_file = .{ "src/root.zig" },
         .target = target,
         .optimize = optimize,
     });

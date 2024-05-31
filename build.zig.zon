@@ -19,6 +19,7 @@
             .url = "https://github.com/raysan5/raylib/archive/b03c8ba945a06ed1ec3d6ed7c3185e1264909323.tar.gz",
             .hash = "1220b6b6198344837d51588b1ed3f63cd6b56b2d60da675219f7578018b54f885830" 
         }
+        
         // See `zig fetch --save <url>` for a command-line interface for adding dependencies.
         //.example = .{
         //    // When updating this field to a new URL, be sure to delete the corresponding
